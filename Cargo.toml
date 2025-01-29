@@ -7,7 +7,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { version = "0.6.2", features = ["router", "fullstack"] }
+
+dioxus = { version = "*", features = ["router", "fullstack","dioxus-cli-config"] }
+dioxus-cli-config = { version = "*", optional = false, features = [] }
 dioxus-liveview = "0.6.1"
 serde = { version = "1.0", features = ["derive"], optional=false }
 dioxus-ssr = { version = "0.6.0-rc.0" }
@@ -16,12 +18,18 @@ dioxus-isrg = { version = "0.6.0-rc.0" }
 dotenv = "0.15"
 mongodb = {version="3.1.0", optional = true }
 futures = { version = "0.3.30", optional = true }
+tokio = { version = "1.30.0", features = ["full"], optional = true }
+axum = { version = "0.7.0", optional = true }
+tower-http = { version = "0.6.2", features = ["cors"] }
+http = "1.2.0"
+
+
 [features]
 default = []
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
-server=["dioxus/server","dep:mongodb","dep:futures"]
+server=["dioxus/server","dep:mongodb","dep:futures","dep:tokio","dep:axum"]
 
 [profile]
 

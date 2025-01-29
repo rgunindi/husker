@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 #[cfg(feature = "server")]
 use futures::TryStreamExt;
 #[cfg(feature = "server")]
-use mongodb::{options::ClientOptions, Client, bson::oid::ObjectId};
+use mongodb::{bson::oid::ObjectId, options::ClientOptions, Client};
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "server")]
 use std::env;
@@ -11,14 +11,14 @@ use std::env;
 pub struct WordSet {
     pub no_sentence: String,
     pub tr_sentence: String,
-    pub no_word: String,        // Base form (infinitive)
+    pub no_word: String, // Base form (infinitive)
     pub tr_word: String,
     pub conjugated_word: String, // Form used in the sentence
-    #[serde(default)]  // This will default to 0 if the field is missing
+    #[serde(default)] // This will default to 0 if the field is missing
     pub correct_attempts: i32,
 }
 
-#[server(GetWordsSet)]
+#[server(GetWordsSet, endpoint = "get_words_set")]
 pub async fn get_words_set() -> Result<Vec<WordSet>, ServerFnError> {
     println!("Fetching word context..."); // Debug log
     dotenv::dotenv().ok();
@@ -31,7 +31,7 @@ pub async fn get_words_set() -> Result<Vec<WordSet>, ServerFnError> {
         .map_err(|e| ServerFnError::new(format!("Failed to parse MongoDB URI: {e}")))?;
     let client = Client::with_options(client_options)
         .map_err(|e| ServerFnError::new(format!("Failed to create MongoDB client: {e}")))?;
-    
+
     // List databases to verify connection
     println!("Connected to MongoDB. Available databases:");
     if let Ok(dbs) = client.list_database_names().await {
@@ -51,10 +51,15 @@ pub async fn get_words_set() -> Result<Vec<WordSet>, ServerFnError> {
         }
     }
 
-    let filter = mongodb::bson::doc! {};
-    
+    let filter = mongodb::bson::doc! {
+    "$or": [
+           { "correct_attempts": { "$lt": 5 } },
+           { "correct_attempts": { "$exists": false } }
+       ]    };
+
     // First try to get raw documents
-    let mut raw_cursor = db.collection::<mongodb::bson::Document>("no_tr")
+    let mut raw_cursor = db
+        .collection::<mongodb::bson::Document>("no_tr")
         .find(filter.clone())
         .await
         .map_err(|e| ServerFnError::new(format!("Failed to execute raw find: {e}")))?;
@@ -81,4 +86,26 @@ pub async fn get_words_set() -> Result<Vec<WordSet>, ServerFnError> {
 
     println!("Found {} words", words.len()); // Debug log
     Ok(words)
+}
+
+/// Update the correct attempts for a word in the database
+#[server(UpdateWordAttempts)]
+pub async fn update_word_attempts(word: String) -> Result<(), ServerFnError> {
+    let client_uri =
+        env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
+    let client_options = ClientOptions::parse(client_uri).await?;
+    let client = Client::with_options(client_options)?;
+
+    let db = client.database("husker");
+    let collection = db.collection::<WordSet>("no_tr");
+
+    // Update the correct_attempts field for the specified word
+    collection
+        .update_one(
+            mongodb::bson::doc! { "no_word": word },
+            mongodb::bson::doc! { "$inc": { "correct_attempts": 1 } },
+        )
+        .await?;
+
+    Ok(())
 }

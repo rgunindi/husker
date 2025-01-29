@@ -991,9 +991,9 @@ dependencies = [
 
 [[package]]
 name = "dioxus"
-version = "0.6.2"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e7d69c4bd197db4739654af0a37c426417b45d5f495df8d10fafeb5da846dca"
+checksum = "a2ce361786137509f7fbf6326d1029b8fef6c959650ea0ba587fcf379e593e14"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-config-macro",
@@ -1015,7 +1015,6 @@ dependencies = [
  "dioxus-web",
  "manganis",
  "serde",
- "warnings",
 ]
 
 [[package]]
@@ -1212,7 +1211,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tower 0.4.13",
- "tower-http",
+ "tower-http 0.5.2",
  "tower-layer",
  "tracing",
  "tracing-futures",
@@ -2491,15 +2490,20 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 name = "husker"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "dioxus",
+ "dioxus-cli-config",
  "dioxus-fullstack",
  "dioxus-isrg",
  "dioxus-liveview",
  "dioxus-ssr",
  "dotenv",
  "futures",
+ "http",
  "mongodb",
  "serde",
+ "tokio",
+ "tower-http 0.6.2",
 ]
 
 [[package]]
@@ -5136,6 +5140,7 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
@@ -5314,6 +5319,20 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
+]
+
+[[package]]
+name = "tower-http"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "403fa3b783d4b626a8ad51d766ab03cb6d2dbfc46b1c5d4448395e6628dc9697"
+dependencies = [
+ "bitflags 2.8.0",
+ "bytes",
+ "http",
+ "pin-project-lite",
+ "tower-layer",
+ "tower-service",
 ]
 
 [[package]]
