@@ -83,11 +83,13 @@ async fn main() {
 
     let router = router.into_make_service();
     println!("Local axum server running on {}", address);
-    let ip = "https://backoffice.koyeb.app";
+    // let ip = "https://backoffice.koyeb.app";
     // let ip2 = "http://192.168.1.109:8080";
-    // set_server_url(ip);
+    // static add: &str = address.to_string().clone();
+
+    // set_server_url(ip2);
     info!("SERVERIP:{0}", server_fn::client::get_server_url());
-    println!("SERVERIP:{0}", server_fn::client::get_server_url());
+    // println!("SERVERIP:{0}", server_fn::client::get_server_url());
     axum::serve(listener, router).await.unwrap();
 }
 #[cfg(not(feature = "server"))]
@@ -113,7 +115,7 @@ fn main() {
         // set_server_url(server_ip);
         // set_server_url("http://192.168.1.109:8080");
         info!("SERVERIP:{0}", get_server_url());
-        println!("SERVERIP:{0}", get_server_url());
+        // println!("SERVERIP:{0}", get_server_url());
     }
     info!("SERVERIP:{0}", get_server_url());
     println!("SERVERIP:{0}", get_server_url());
@@ -164,7 +166,7 @@ fn Navbar() -> Element {
 fn WordGame() -> Element {
     let word_set = use_signal(Word::new_set);
     let mut current_word_index = use_signal(|| 0);
-
+    info!("From wordgame");
     // Fetch words from database
     use_effect(move || {
         to_owned![word_set];
@@ -192,9 +194,9 @@ fn WordGame() -> Element {
 
     let check_answer = move |_| async move {
         to_owned![message, show_answer, current_word_index, user_input];
-
+        info!("{} {}", current_word().conjugated_word, user_input());
         // Compare case-insensitive
-        if user_input().to_lowercase() == current_word().no_word.to_lowercase() {
+        if user_input().to_lowercase() == current_word().conjugated_word.to_lowercase() {
             let mut msg = String::from("Correct! Press Enter for next word.");
             msg.push_str("</br>");
             // Show the full sentence when the answer is checked
@@ -202,16 +204,24 @@ fn WordGame() -> Element {
                 "<p class=\"no_sentence\">{}</p>",
                 &current_word().no_sentence
             );
+            let setning_tr = current_word().tr_sentence;
             msg.push_str(&setning);
-            message.set(msg.into());
+            msg.push_str(&setning_tr);
+            message.set(msg);
 
             // Update the correct attempts in the database
-            update_word_attempts(current_word().no_word.clone()).await;
-
+            let _ = update_word_attempts(current_word().no_word.clone()).await;
+            if word_set().len() > current_word_index() {
+                current_word_index += 1;
+            }
             user_input.set("".into());
             show_answer.set(true);
         } else {
-            message.set("Incorrect. Try again.".into());
+            let mut msg = format!(
+                "Incorrect!.\n Correct Word is : \t {}",
+                current_word().no_word
+            );
+            message.set(msg);
             show_answer.set(true);
         }
     };
@@ -252,7 +262,7 @@ fn WordGame() -> Element {
                  button { onclick: move |_| {
                     // Only increment the index if the answer was correct
                     if show_answer() {
-                        current_word_index.set(current_word_index() + 1);
+                        // current_word_index.set(current_word_index() + 1);
                         user_input.set("".into());
                         show_answer.set(false);
                     }
@@ -262,14 +272,6 @@ fn WordGame() -> Element {
                 // Message area
                 if !message().is_empty() {
                     p { class: "message", dangerous_inner_html:"{message}" }
-                }
-
-                // Show answer when needed
-                if show_answer() {
-                    p { class: "answer",
-                        "Correct word: "
-                        span { class: "highlight", "{current_word().no_word}" }
-                    }
                 }
             }
         }
