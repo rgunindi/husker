@@ -114,6 +114,7 @@ fn main() {
         // let ip2 = "https://infodonnamobil.onrender.com";
         // set_server_url(server_ip);
         // set_server_url("http://192.168.1.109:8080");
+        set_server_url("https://husker.koyeb.app");
         info!("SERVERIP:{0}", get_server_url());
         // println!("SERVERIP:{0}", get_server_url());
     }

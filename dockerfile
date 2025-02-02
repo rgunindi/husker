@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y \
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_DIR=/etc/ssl/certs
 
-COPY --from=builder /app/target/dx/infodonnamobil/release/web/ /usr/local/app
+COPY --from=builder /app/target/dx/husker/release/web/ /usr/local/app
 
 # Set environment variables
 ENV PORT=8080
